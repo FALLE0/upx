@@ -12,7 +12,7 @@ MAKEFLAGS += -rR
 .SUFFIXES:
 export LC_ALL = C
 export SHELL = /bin/sh
-
+export HOME = /home/upx
 # internal make variables
 comma := ,
 empty :=
@@ -35,7 +35,6 @@ export PATH := $(HOME)/.local/bin/bin-upx:$(PATH)
 else ifneq ($(wildcard $(HOME)/bin/bin-upx/upx-stubtools-check-version),)
 export PATH := $(HOME)/bin/bin-upx:$(PATH)
 endif
-
 
 # /***********************************************************************
 # //

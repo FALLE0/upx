@@ -10,10 +10,10 @@ argv0=$0; argv0abs="$(readlink -fn "$argv0")"; argv0dir="$(dirname "$argv0abs")"
 
 image="$("$argv0dir/10-create-image.sh" --print-image)"
 
-flags=( --read-only --rm --pull=never )
+flags=(  --rm --pull=never ) # --read-only
 flags+=( --cap-drop=all )               # drop all capabilities
 flags+=( --network=none )               # no network needed
-if [[ 1 == 1 ]]; then
+if [[ 1 == 2 ]]; then
     # run as user upx 2000:2000
     flags+=( --user 2000 )
     # map container users 0..999 to subuid-users 1..1000, and map container user 2000 to current host user
@@ -23,6 +23,11 @@ if [[ 1 == 1 ]]; then
     # NOTE: we mount the upx top-level directory read-write under /home/upx/src/upx
     # INFO: SELinux users *may* have to add ":z" to the volume mount flags; check the docs!
     flags+=( -v "${argv0dir}/../../..:/home/upx/src/upx" )
+else
+    # run as user root 0:0
+    # ONLY FOR DEBUGGING THE IMAGE
+    # map container user/group 0 to current host user/group
+    flags+=( --user 0 )
 fi
 
 podman run "${flags[@]}" "$image" bash -c $'

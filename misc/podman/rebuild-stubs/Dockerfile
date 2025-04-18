@@ -1,11 +1,14 @@
 # Copyright (C) Markus Franz Xaver Johannes Oberhumer
-FROM docker.io/library/ubuntu:24.04
+FROM docker.m.daocloud.io/library/ubuntu:24.04
 ENV UPX_CONTAINER_IMAGE_NAME=upx-stubtools-20240405-v1
 ARG DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
-
+ENV http_proxy=http://192.168.190.1:7890
+ENV https_proxy=http://192.168.190.1:7890
 # install system packages
-RUN dpkg --add-architecture i386 \
+RUN sed -i 's|http://.*.ubuntu.com|http://mirrors.cqu.edu.cn|g' /etc/apt/sources.list.d/ubuntu.sources \
+    && cat /etc/apt/sources.list \
+    && dpkg --add-architecture i386 \
     && apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
         aria2 bash bash-completion ca-certificates curl git less libmpc3 \
@@ -71,15 +74,18 @@ RUN cd /root \
 
 # create default container user upx:upx 2000:2000
 RUN useradd upx -U --uid 2000 --shell /bin/bash -m \
-    && cd /home/upx && chmod 00700 . \
+    && cd /home/upx && chmod 777 . \
     # prepare ~/.cache, ~/.config and ~/.local for possible tmpfs mounts
-    && mkdir -p .cache/tmp .local/bin src/upx \
+    && mkdir -p .cache/tmp .local/bin /home/upx/src ./local/bin \
     && for d in ccache fontconfig go-build mesa_shader_cache parallel tmp wine zig; do mkdir -p .cache/$d; done \
     && for d in fish git helix kak nvim; do mkdir -p .config/$d; done \
     && for d in bin include lib share state; do mkdir -p .local/$d; done \
     && ln -s .cache/wine .wine && ln -s .cache/tmp tmp \
     # symlink upx-stubtools
     && ln -s /usr/local/bin/bin-upx-20221212 .local/bin/bin-upx \
+    && ln -s /usr/local/bin/bin-upx-20221212 ./local/bin/bin-upx \
+    && cd /home/upx/src \
+    && git clone --recursive https://github.com/upx/upx.git \
     # some convenience settings according to upx developer preferences
     && echo "alias path='echo PATH=\"\$PATH\"'" >> .bashrc \
     && echo "alias md=mkdir" >> .bashrc \
@@ -97,6 +103,7 @@ RUN useradd upx -U --uid 2000 --shell /bin/bash -m \
     && echo "alias cd..='cd ..'" >> .bashrc \
     && echo "alias ..='cd ..'" >> .bashrc \
     && echo "alias .='cd ..'" >> .bashrc \
-    && chown -R upx:upx . \
+    #&& chown -R upx:upx . \
+    && export HOME=/home/upx \
     && true
 USER upx

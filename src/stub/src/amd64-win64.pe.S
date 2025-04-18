@@ -86,6 +86,7 @@ section         PEMAIN01
                 push    rbx
                 push    rsi
                 push    rdi
+                nop
                 push    rbp
                 lea     rsi, [rip + start_of_compressed]
                 lea     rdi, [rsi + start_of_uncompressed]
